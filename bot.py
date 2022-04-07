@@ -2,7 +2,7 @@ import logging
 import os
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
-TOKEN = os.getenv('TG_TOKEN')
+TOKEN = '5151383399:AAHijezjPaSYIa-U1mBKvkJNuLBohCLEVzk' #os.getenv('TG_TOKEN')
 APP_NAME = 'https://ge-random-coffee.herokuapp.com/'
 PORT = 5000
 
