@@ -4,7 +4,7 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
 TOKEN = '5151383399:AAHijezjPaSYIa-U1mBKvkJNuLBohCLEVzk' #os.getenv('TG_TOKEN')
 APP_NAME = 'https://ge-random-coffee.herokuapp.com/'
-PORT = 8443
+PORT = int(os.environ.get('PORT', '8443'))
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -52,7 +52,7 @@ def main():
 
     # Start the Bot
     updater.start_webhook(listen="0.0.0.0",
-                          port=int(PORT),
+                          port=PORT,
                           url_path=TOKEN,
                           webhook_url = APP_NAME + TOKEN)
 
