@@ -2,9 +2,15 @@ import logging
 import os
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
-TOKEN = '5151383399:AAHijezjPaSYIa-U1mBKvkJNuLBohCLEVzk' #os.getenv('TG_TOKEN')
-APP_NAME = 'https://ge-random-coffee.herokuapp.com/'
-PORT = int(os.environ.get('PORT', '8443'))
+BOT_ENV = 'dev'
+
+if BOT_ENV == 'prod':
+    TOKEN = '5151383399:AAHijezjPaSYIa-U1mBKvkJNuLBohCLEVzk'
+    APP_NAME = 'https://ge-random-coffee.herokuapp.com/'
+    PORT = int(os.environ.get('PORT', '8443'))
+else:
+    TOKEN = '5192806492:AAEpnMrgpsg7UCALqyHMKZ8NVSqIXufb-qA'
+
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -15,7 +21,8 @@ logger = logging.getLogger(__name__)
 
 def start(update, context):
     """Send a message when the command /start is issued."""
-    update.message.reply_text('Hi!')
+    username = update.message.chat.username
+    update.message.reply_text(f'Hey {username}!')
 
 
 def help(update, context):
@@ -35,7 +42,7 @@ def error(update, context):
 
 def main():
     """Start the bot."""
-    updater = Updater(TOKEN, use_context=True)
+    updater = Updater(TOKEN)
 
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
@@ -51,10 +58,13 @@ def main():
     dp.add_error_handler(error)
 
     # Start the Bot
-    updater.start_webhook(listen="0.0.0.0",
-                          port=PORT,
-                          url_path=TOKEN,
-                          webhook_url = APP_NAME + TOKEN)
+    if BOT_ENV == 'prod':
+        updater.start_webhook(listen="0.0.0.0",
+                              port=PORT,
+                              url_path=TOKEN,
+                              webhook_url = APP_NAME + TOKEN)
+    else:
+        updater.start_polling(timeout=10)
 
     updater.idle()
 
