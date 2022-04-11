@@ -2,7 +2,7 @@ import logging
 import os
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
-BOT_ENV = 'dev'
+BOT_ENV = 'prod'
 
 if BOT_ENV == 'prod':
     TOKEN = '5151383399:AAHijezjPaSYIa-U1mBKvkJNuLBohCLEVzk'
