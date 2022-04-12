@@ -1,6 +1,7 @@
 import logging
 import os
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from dbhelper import DBHelper
 
 BOT_ENV = os.getenv('BOT_ENV')
 TOKEN = os.getenv('TG_TOKEN')
@@ -21,6 +22,16 @@ def start(update, context):
     username = update.message.chat.username
     update.message.reply_text(f'Hey {username}!')
 
+def signup(update, context):
+    username = update.message.chat.username
+    db = DBHelper()
+    db.add_user(username)
+    update.message.reply_text(f'User {username} added!')
+
+def getusers(update,context):
+    db = DBHelper()
+    users = db.get_users()
+    update.message.reply_text(users)
 
 def help(update, context):
     """Send a message when the command /help is issued."""
@@ -39,6 +50,9 @@ def error(update, context):
 
 def main():
     """Start the bot."""
+    db = DBHelper()
+    db.setup()
+
     updater = Updater(TOKEN)
 
     # Get the dispatcher to register handlers
@@ -47,6 +61,8 @@ def main():
     # on different commands - answer in Telegram
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(CommandHandler("help", help))
+    dp.add_handler(CommandHandler("signup", signup))
+    dp.add_handler(CommandHandler("getusers", getusers))
 
     # on noncommand i.e message - echo the message on Telegram
     dp.add_handler(MessageHandler(Filters.text, echo))

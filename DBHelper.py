@@ -21,10 +21,3 @@ class DBHelper:
         return [x[0] for x in self.conn.execute(sql)]
         #self.conn.commit()
 
-db = DBHelper()
-db.setup()
-#db.add_user('gapon')
-#db.add_user('lev')
-#db.add_user('gapon')
-print(db.get_users())
-
