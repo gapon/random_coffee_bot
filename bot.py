@@ -1,7 +1,7 @@
 import logging
 import os
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-from dbhelper import DBHelper
+from DBHelper import DBHelper
 
 BOT_ENV = os.getenv('BOT_ENV')
 TOKEN = os.getenv('TG_TOKEN')
