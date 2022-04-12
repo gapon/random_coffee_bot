@@ -2,15 +2,12 @@ import logging
 import os
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
-BOT_ENV = 'prod'
+BOT_ENV = os.getenv('BOT_ENV')
+TOKEN = os.getenv('TG_TOKEN')
 
 if BOT_ENV == 'prod':
-    TOKEN = '5151383399:AAHijezjPaSYIa-U1mBKvkJNuLBohCLEVzk'
     APP_NAME = 'https://ge-random-coffee.herokuapp.com/'
     PORT = int(os.environ.get('PORT', '8443'))
-else:
-    TOKEN = '5192806492:AAEpnMrgpsg7UCALqyHMKZ8NVSqIXufb-qA'
-
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
