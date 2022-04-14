@@ -16,6 +16,13 @@ class DBHelper:
         args = (username, )
         self.conn.execute(sql, args)
         self.conn.commit()
+    
+    def delete_user(self, username):
+        sql = 'DELETE FROM users WHERE username = (?)'
+        args = (username,)
+        self.conn.execute(sql, args)
+        self.conn.commit()
+
     def get_users(self):
         sql = 'SELECT * FROM users'
         return [x[0] for x in self.conn.execute(sql)]

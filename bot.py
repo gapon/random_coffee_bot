@@ -1,7 +1,9 @@
+from curses import keyname
 import logging
 import os
+import telegram
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-from DBHelper import DBHelper
+from dbhelper import DBHelper
 
 BOT_ENV = os.getenv('BOT_ENV')
 TOKEN = os.getenv('TG_TOKEN')
@@ -18,9 +20,15 @@ logger = logging.getLogger(__name__)
 
 
 def start(update, context):
-    """Send a message when the command /start is issued."""
-    username = update.message.chat.username
-    update.message.reply_text(f'Hey {username}!')
+    db = DBHelper()
+    users = db.get_users()
+    user = update.message.chat.username
+    if user in users:
+        kb = [[telegram.KeyboardButton('/remove')]]
+    else:
+        kb = [[telegram.KeyboardButton('/signup')]]
+    kb_markup = telegram.ReplyKeyboardMarkup(kb, one_time_keyboard=True)
+    update.message.reply_text(f'Hey!', reply_markup=kb_markup)
 
 def signup(update, context):
     username = update.message.chat.username
@@ -33,9 +41,12 @@ def getusers(update,context):
     users = db.get_users()
     update.message.reply_text(users)
 
-def help(update, context):
-    """Send a message when the command /help is issued."""
-    update.message.reply_text('Help!')
+def remove(update, context):
+    username = update.message.chat.username
+    db = DBHelper()
+    db.delete_user(username)
+    update.message.reply_text(f'User {username} removed!')
+
 
 
 def echo(update, context):
@@ -50,6 +61,7 @@ def error(update, context):
 
 def main():
     """Start the bot."""
+
     db = DBHelper()
     db.setup()
 
@@ -59,10 +71,11 @@ def main():
     dp = updater.dispatcher
 
     # on different commands - answer in Telegram
-    dp.add_handler(CommandHandler("start", start))
-    dp.add_handler(CommandHandler("help", help))
-    dp.add_handler(CommandHandler("signup", signup))
-    dp.add_handler(CommandHandler("getusers", getusers))
+    dp.add_handler(CommandHandler('start', start))
+    dp.add_handler(CommandHandler('help', help))
+    dp.add_handler(CommandHandler('signup', signup))
+    dp.add_handler(CommandHandler('remove', remove))
+    dp.add_handler(CommandHandler('getusers', getusers))
 
     # on noncommand i.e message - echo the message on Telegram
     dp.add_handler(MessageHandler(Filters.text, echo))
