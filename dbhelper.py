@@ -26,5 +26,3 @@ class DBHelper:
     def get_users(self):
         sql = 'SELECT * FROM users'
         return [x[0] for x in self.conn.execute(sql)]
-        #self.conn.commit()
-
