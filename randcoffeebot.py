@@ -18,7 +18,6 @@ logger = logging.getLogger(__name__)
 
 
 def start(update: Update, context: CallbackContext) -> None:
-    """Sends a message with three inline buttons attached."""
     conn = DBHelper()
     users = conn.get_users()
     user = update.effective_user.username
@@ -33,7 +32,6 @@ def start(update: Update, context: CallbackContext) -> None:
 
 
 def button(update: Update, context: CallbackContext) -> None:
-    """Parses the CallbackQuery and updates the message text."""
     query = update.callback_query
 
     user = query.from_user.username
@@ -59,17 +57,13 @@ def getusers(update: Update,context: CallbackContext) -> None:
 
 
 def help_command(update: Update, context: CallbackContext) -> None:
-    """Displays info on how to use the bot."""
     update.message.reply_text("Use /start to test this bot.")
 
 
 def main() -> None:
-    """Run the bot."""
-    # Setup database
     conn = DBHelper()
     conn.setup()
 
-    # Create the Updater and pass it your bot's token.
     updater = Updater(TOKEN)
 
     updater.dispatcher.add_handler(CommandHandler('start', start))
@@ -77,7 +71,6 @@ def main() -> None:
     updater.dispatcher.add_handler(CommandHandler('getusers', getusers))
     updater.dispatcher.add_handler(CommandHandler('help', help_command))
 
-    # Start the Bot
     if BOT_ENV == 'prod':
         updater.start_webhook(listen="0.0.0.0",
                               port=PORT,
@@ -86,8 +79,6 @@ def main() -> None:
     else:
         updater.start_polling(timeout=10)
 
-    # Run the bot until the user presses Ctrl-C or the process receives SIGINT,
-    # SIGTERM or SIGABRT
     updater.idle()
 
 
