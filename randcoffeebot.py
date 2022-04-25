@@ -1,8 +1,18 @@
 import logging
 import os
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext
 from dbhelper import DBHelper
+
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram.ext import (
+    Updater,
+    Filters,
+    CommandHandler,
+    CallbackQueryHandler,
+    CallbackContext,
+    ConversationHandler,
+    MessageHandler,
+)
+
 
 BOT_ENV = os.getenv('BOT_ENV')
 TOKEN = os.getenv('TG_TOKEN')
@@ -16,19 +26,42 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+INTRO, BIO = range(2)
 
-def start(update: Update, context: CallbackContext) -> None:
-    conn = DBHelper()
-    users = conn.get_users()
-    user = update.effective_user.username
 
-    if user in users:
-        keyboard = [[InlineKeyboardButton('Remove', callback_data='remove')]]
-    else:
-        keyboard = [[InlineKeyboardButton('Signup', callback_data='signup')]]
+def start(update: Update, context: CallbackContext) -> int:
+    keyboard = [[InlineKeyboardButton('Поехали!', callback_data='1')]]
 
     reply_markup = InlineKeyboardMarkup(keyboard)
-    update.message.reply_text('Choose', reply_markup=reply_markup)
+    update.message.reply_text(
+        'Привет! 🙌 Я Random Coffee бот. \n\n'
+        'Каждую неделю я буду знакомить тебя с новыми интересными людьми.'
+        ' Встречи могут проходить в офлайне или онлайне, на твой выбор.\n\n'
+        'Чтобы принять участие во встречах, тебе нужно ответить на несколько вопросов.'
+    )
+    update.message.reply_text('Ну что, погнали?', reply_markup=reply_markup)
+    return INTRO
+
+def intro(update: Update, context: CallbackContext) -> int:
+    query = update.callback_query
+    logger.info(f'Button push: {query.data}')
+
+    query.answer()
+    query.edit_message_text(
+        '>> Поехали!'
+    )
+    query.message.reply_text('Расскажи в нескольких предложениях о себе')
+
+    return BIO
+
+def bio(update: Update, context: CallbackContext) -> int:
+    user = update.message.from_user.username
+    answer = update.message.text
+    logger.info(f'Bio of {user}: {update.message.text}')
+
+
+    update.message.reply_text('Принял!')
+    return ConversationHandler.END
 
 
 def button(update: Update, context: CallbackContext) -> None:
@@ -46,7 +79,6 @@ def button(update: Update, context: CallbackContext) -> None:
         answer_text = f'User {user} added'
 
     query.answer(answer_text)
-
     query.edit_message_text(answer_text)
 
 
@@ -55,9 +87,14 @@ def getusers(update: Update,context: CallbackContext) -> None:
     users = db.get_users()
     update.message.reply_text(users)
 
+def cancel(update: Update, context: CallbackContext) -> int:
+    user = update.message.from_user.username
+    logger.info(f'User {user} canceled the conversation')
+    update.message.reply_text(
+        'Bye! I hope we can talk again some day.', reply_markup=ReplyKeyboardRemove()
+    )
 
-def help_command(update: Update, context: CallbackContext) -> None:
-    update.message.reply_text("Use /start to test this bot.")
+    return ConversationHandler.END
 
 
 def main() -> None:
@@ -65,11 +102,21 @@ def main() -> None:
     conn.setup()
 
     updater = Updater(TOKEN)
+    dispatcher = updater.dispatcher
 
-    updater.dispatcher.add_handler(CommandHandler('start', start))
-    updater.dispatcher.add_handler(CallbackQueryHandler(button))
-    updater.dispatcher.add_handler(CommandHandler('getusers', getusers))
-    updater.dispatcher.add_handler(CommandHandler('help', help_command))
+    conv_handler = ConversationHandler(
+        entry_points=[CommandHandler('start', start)],
+        states={
+            INTRO: [CallbackQueryHandler(intro)],
+            BIO: [
+                MessageHandler(Filters.text & ~Filters.command, bio)
+                ]
+        },
+        fallbacks=[CommandHandler('cancel', cancel)]
+
+    )
+
+    dispatcher.add_handler(conv_handler)
 
     if BOT_ENV == 'prod':
         updater.start_webhook(listen="0.0.0.0",
